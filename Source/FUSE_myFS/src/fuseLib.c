@@ -519,11 +519,8 @@ static int my_read(const char *path, char *buf, size_t size, off_t offset, struc
 		    buf[totalRead++] = buffer[i];
 		}
 
-		// Discount the read stuff
-		//bytes2Read -= (i - offBlock); PREGUNTAR
 		offset += (i - offBlock);
 	}
-	//sync();
 
 	node->modificationTime = time(NULL);
 	updateSuperBlock(&myFileSystem);
@@ -533,7 +530,40 @@ static int my_read(const char *path, char *buf, size_t size, off_t offset, struc
 	return totalRead;
 }
 static int my_unlink(const char *path){
-	// PENDIENTE
+	
+	int idxNode;
+	int indexOfFileDir;
+
+	if((indexOfFileDir = findFileByName(&myFileSystem, &path)) != -1){
+		
+		idxNode = myFileSystem.directory.files[indexOfFileDir].nodeIdx;
+		
+		resizeNode(idxNode, 0);
+
+		myFileSystem.directory.files[indexOfFileDir].freeFile = true;
+		myFileSystem.directory.numFiles--;
+		myFileSystem.nodes[idxNode]->freeNode = true;
+		myFileSystem.numFreeNodes++;
+
+		updateDirectory(&myFileSystem);	
+		updateNode(&myFileSystem, idxNode, &myFileSystem.nodes[idxNode]);
+
+		myFileSystem.nodes[idxNode]->numBlocks = 0;
+		myFileSystem.nodes[idxNode]->fileSize = 0;
+		myFileSystem.nodes[idxNode]->freeNode = true;	
+
+		free(myFileSystem.nodes[idxNode]);
+		//myFileSystem.directory.nodes[idxNode].freeFile = true;
+		
+		int i;
+		for(i = 0; i < myFileSystem.nodes[idxNode]->numBlocks; i++){
+			myFileSystem.bitMap[myFileSystem.nodes[idxNode]->blocks[i]] = 0;		
+		}
+		updateSuperBlock(&myFileSystem);
+		updateBitmap(&myFileSystem);
+	}
+
+
 	return 0;
 }
 
