@@ -534,11 +534,8 @@ static int my_unlink(const char *path){
 	int idxNode;
 	int indexOfFileDir;
 
-<<<<<<< HEAD
+
 	if((indexOfFileDir = findFileByName(&myFileSystem, (char *)path)) != -1){
-=======
-	if((indexOfFileDir = findFileByName(&myFileSystem, &path)) != -1){
->>>>>>> e14c5213392d2cea89dbea0e20f87c9b5851427a
 		
 		idxNode = myFileSystem.directory.files[indexOfFileDir].nodeIdx;
 		
@@ -550,11 +547,8 @@ static int my_unlink(const char *path){
 		myFileSystem.numFreeNodes++;
 
 		updateDirectory(&myFileSystem);	
-<<<<<<< HEAD
+
 		updateNode(&myFileSystem, idxNode, myFileSystem.nodes[idxNode]);
-=======
-		updateNode(&myFileSystem, idxNode, &myFileSystem.nodes[idxNode]);
->>>>>>> e14c5213392d2cea89dbea0e20f87c9b5851427a
 
 		myFileSystem.nodes[idxNode]->numBlocks = 0;
 		myFileSystem.nodes[idxNode]->fileSize = 0;
