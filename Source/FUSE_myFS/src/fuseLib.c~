@@ -503,23 +503,27 @@ static int my_read(const char *path, char *buf, size_t size, off_t offset, struc
 		bytes2Read = size;
 	}
 
-	// Write data
+	int readPerBlock;
 	while(totalRead < bytes2Read) {
 		int i;
 		int currentBlock, offBlock;
 		currentBlock = node->blocks[offset / BLOCK_SIZE_BYTES];
 		offBlock = offset % BLOCK_SIZE_BYTES;
 
-		if( readBlock(&myFileSystem, currentBlock, &buffer)==-1 ) {
+		//if( readBlock(&myFileSystem, currentBlock, &buffer)==-1 )
+		
+		if((lseek(myFileSystem.fdVirtualDisk, currentBlock * BLOCK_SIZE_BYTES, SEEK_SET) == (off_t) - 1) ||
+		        ((readPerBlock = read(myFileSystem.fdVirtualDisk, &buffer, BLOCK_SIZE_BYTES)) == -1)) {
 		    fprintf(stderr,"Error reading blocks in my_read\n");
 		    return -EIO;
 		}
+		if(readPerBlock != -1){
+			for(i = offBlock; (i < BLOCK_SIZE_BYTES) && (totalRead < bytes2Read); i++) {
+			    buf[totalRead++] = buffer[i];
+			}
 
-		for(i = offBlock; (i < BLOCK_SIZE_BYTES) && (totalRead < bytes2Read); i++) {
-		    buf[totalRead++] = buffer[i];
+			offset += (i - offBlock);
 		}
-
-		offset += (i - offBlock);
 	}
 
 	node->modificationTime = time(NULL);
@@ -534,11 +538,8 @@ static int my_unlink(const char *path){
 	int idxNode;
 	int indexOfFileDir;
 
-<<<<<<< HEAD
+
 	if((indexOfFileDir = findFileByName(&myFileSystem, (char *)path)) != -1){
-=======
-	if((indexOfFileDir = findFileByName(&myFileSystem, &path)) != -1){
->>>>>>> e14c5213392d2cea89dbea0e20f87c9b5851427a
 		
 		idxNode = myFileSystem.directory.files[indexOfFileDir].nodeIdx;
 		
@@ -550,11 +551,8 @@ static int my_unlink(const char *path){
 		myFileSystem.numFreeNodes++;
 
 		updateDirectory(&myFileSystem);	
-<<<<<<< HEAD
+
 		updateNode(&myFileSystem, idxNode, myFileSystem.nodes[idxNode]);
-=======
-		updateNode(&myFileSystem, idxNode, &myFileSystem.nodes[idxNode]);
->>>>>>> e14c5213392d2cea89dbea0e20f87c9b5851427a
 
 		myFileSystem.nodes[idxNode]->numBlocks = 0;
 		myFileSystem.nodes[idxNode]->fileSize = 0;
