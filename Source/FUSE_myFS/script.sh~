@@ -1,5 +1,8 @@
 #!/bin/bash
 
+set -x
+trap read debug
+
 DIRSRC=$(pwd)/src
 TEMPDIR=$(pwd)/temp
 MOUNTPOINT=$(pwd)/mount-point
